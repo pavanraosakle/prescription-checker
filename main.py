@@ -61,7 +61,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
 
 @app.get("/")
 async def root():
@@ -148,7 +147,6 @@ async def interactions_only(payload: ExplainRequest):
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-=======
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 @app.post("/api/extract")
@@ -213,4 +211,3 @@ async def chat(req: ChatRequest):
 
 
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
->>>>>>> afddd17 (Merged backend to frontend partially)
