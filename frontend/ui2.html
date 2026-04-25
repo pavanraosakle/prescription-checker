@@ -77,8 +77,6 @@
 <span class="material-symbols-outlined text-tertiary">volume_up</span></button>
 </div>
 <div class="flex gap-2">
-<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-caption font-medium border border-secondary">AI Active</span>
-<span class="px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-caption font-medium border border-tertiary">HIPAA Secure</span>
 </div>
 </div>
 </div>
@@ -135,7 +133,7 @@ Go to Doctor
 <div class="w-full py-8 px-6 flex flex-col md:flex-row justify-between items-center max-w-[1440px] mx-auto">
 <div class="mb-4 md:mb-0">
 <span class="text-lg font-black text-slate-900 dark:text-white block mb-1">med-EZ</span>
-<p class="font-plus-jakarta-sans text-xs text-slate-500 dark:text-slate-400">© 2024 med-EZ Healthcare Systems. Human-centric clinical excellence.</p>
+<p class="font-plus-jakarta-sans text-xs text-slate-500 dark:text-slate-400">© 2026 med-EZ Healthcare Systems. Human-centric clinical excellence.</p>
 </div>
 <div class="flex flex-wrap justify-center gap-6">
 <a class="font-plus-jakarta-sans text-xs text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors" href="#">Privacy Policy</a>
@@ -145,4 +143,45 @@ Go to Doctor
 </div>
 </div>
 </footer>
+<script>
+  // Find the Image Upload button
+  const allButtons = document.querySelectorAll('button');
+  let uploadBtn = null;
+  allButtons.forEach(btn => {
+    if (btn.innerText.includes('Image Upload')) uploadBtn = btn;
+  });
+
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        uploadBtn.innerText = 'Analyzing...';
+
+        const res = await fetch('/api/extract', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        uploadBtn.innerText = 'Image Upload';
+
+        if (data.medicines) {
+          document.querySelector('textarea').value = data.medicines
+            .map(m => `${m.brand_name} ${m.dose || ''} - ${m.frequency || ''}`)
+            .join('\n');
+          const first = data.medicines[0];
+          if (first) {
+            document.querySelectorAll('.text-body-md')[0].textContent = first.dose || '-';
+            document.querySelectorAll('.text-body-md')[1].textContent = first.frequency || '-';
+            document.querySelectorAll('.text-body-md')[2].textContent = first.duration || '-';
+          }
+        }
+      };
+      input.click();
+    });
+  }
+</script>
 </body></html>

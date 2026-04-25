@@ -449,5 +449,38 @@
   </div>
 
 </div>
+<script>
+  const chatBody = document.querySelector('.chat-body');
+  const input = document.querySelector('.chat-input');
+  let history = [];
+
+  function addMessage(text, isUser) {
+    const div = document.createElement('div');
+    div.style.cssText = `display:flex;justify-content:${isUser?'flex-end':'flex-start'};margin-bottom:16px`;
+    div.innerHTML = `<div style="max-width:70%;padding:12px 16px;border-radius:${isUser?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${isUser?'#1a56db':'#fff'};color:${isUser?'#fff':'#111827'};font-size:0.88rem;line-height:1.5;box-shadow:0 1px 3px rgba(0,0,0,0.1)">${text}</div>`;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    addMessage(text, true);
+    history.push({ role: 'user', content: text });
+    input.value = '';
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: history.slice(-10) })
+    });
+    const data = await res.json();
+    addMessage(data.reply, false);
+    history.push({ role: 'assistant', content: data.reply });
+  }
+
+  document.querySelector('.send-btn').addEventListener('click', sendMessage);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+</script>
 </body>
 </html>
