@@ -39,8 +39,8 @@
 <nav class="hidden md:flex items-center gap-6">
 <a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-plus-jakarta-sans text-sm font-medium tracking-tight transition-colors duration-200" href="#">Dashboard</a>
 <a class="text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 font-bold pb-1 font-plus-jakarta-sans text-sm tracking-tight" href="#">Prescriptions</a>
-<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-plus-jakarta-sans text-sm font-medium tracking-tight transition-colors duration-200" href="#">AI Chatbot</a>
-<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-plus-jakarta-sans text-sm font-medium tracking-tight transition-colors duration-200" href="#">Records</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-plus-jakarta-sans text-sm font-medium tracking-tight transition-colors duration-200" href="u3.html">AI Chatbot</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-plus-jakarta-sans text-sm font-medium tracking-tight transition-colors duration-200" href="history.html">History</a>
 </nav>
 </div>
 <div class="flex items-center gap-4">
@@ -80,7 +80,7 @@
 </div>
 </div>
 </div>
-<div class="mt-lg grid grid-cols-3 gap-md">
+<div class="mt-lg grid grid-cols-5 gap-md">
 <div class="p-md rounded-xl border-l-4 border-primary bg-white shadow-sm">
 <span class="text-caption font-bold text-primary block mb-1">DOSAGE</span>
 <p class="text-body-md text-on-surface">500mg - 2x daily</p>
@@ -92,6 +92,15 @@
 <div class="p-md rounded-xl border-l-4 border-tertiary bg-white shadow-sm">
 <span class="text-caption font-bold text-tertiary block mb-1">DURATION</span>
 <p class="text-body-md text-on-surface">7 Day Course</p>
+</div>
+<div class="p-md rounded-xl border-l-4 border-purple-500 bg-white shadow-sm">
+  <span class="text-caption font-bold text-purple-500 block mb-1">SIDE EFFECTS</span>
+  <p class="text-body-md text-on-surface" id="card-side-effects">-</p>
+</div>
+<div class="p-md rounded-xl border-l-4 border-orange-500 bg-white shadow-sm">
+  <span class="text-caption font-bold text-orange-500 block mb-1">INSTRUCTIONS</span>
+  <p class="text-body-md text-on-surface" id="card-instructions">-</p>
+</div
 </div>
 </div>
 </section>
@@ -143,8 +152,8 @@ Go to Doctor
 </div>
 </div>
 </footer>
+<script src="historyManager.js"></script>
 <script>
-  // Find the Image Upload button
   const allButtons = document.querySelectorAll('button');
   let uploadBtn = null;
   allButtons.forEach(btn => {
@@ -169,14 +178,26 @@ Go to Doctor
         uploadBtn.innerText = 'Image Upload';
 
         if (data.medicines) {
+          addPrescriptionEntry({
+            imageFileName: file.name,
+            medicines:     data.medicines,
+            doctorName:    data.doctor_name,
+            date:          data.date,
+            confidence:    data.confidence,
+            rawText:       data.raw_text,
+          });
+
           document.querySelector('textarea').value = data.medicines
             .map(m => `${m.brand_name} ${m.dose || ''} - ${m.frequency || ''}`)
             .join('\n');
+
           const first = data.medicines[0];
           if (first) {
             document.querySelectorAll('.text-body-md')[0].textContent = first.dose || '-';
             document.querySelectorAll('.text-body-md')[1].textContent = first.frequency || '-';
             document.querySelectorAll('.text-body-md')[2].textContent = first.duration || '-';
+            document.getElementById('card-side-effects').textContent = first.common_side_effects?.join(', ') || '-';
+            document.getElementById('card-instructions').textContent = first.instructions || '-';
           }
         }
       };

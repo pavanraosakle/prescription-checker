@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>med-EZ | History</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+  .topnav {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topnav-links { display: flex; gap: 32px; align-items: center; }
+  .topnav-links a {
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #6b7280;
+    padding-bottom: 2px;
+  }
+  .topnav-links a:hover { color: #1a56db; }
+  .topnav-links a.active { color: #1a56db; border-bottom: 2px solid #1a56db; }
+  .logo { font-size: 1.2rem; font-weight: 700; color: #1a56db; }
+
+  .container { max-width: 860px; margin: 40px auto; padding: 0 24px; }
+
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 6px;
+  }
+  .page-sub { font-size: 0.9rem; color: #6b7280; margin-bottom: 28px; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid #e5e7eb;
+  }
+  .stat-card .stat-num { font-size: 1.8rem; font-weight: 700; color: #1a56db; }
+  .stat-card .stat-label { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.15s;
+  }
+  .filter-btn.active { background: #1a56db; color: #fff; border-color: #1a56db; }
+  .filter-btn:hover:not(.active) { border-color: #1a56db; color: #1a56db; }
+
+  .clear-btn {
+    margin-left: auto;
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1.5px solid #fee2e2;
+    background: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #dc2626;
+    transition: all 0.15s;
+  }
+  .clear-btn:hover { background: #fee2e2; }
+
+  .history-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .history-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: box-shadow 0.15s;
+  }
+  .history-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  .item-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .icon-prescription { background: #eff6ff; }
+  .icon-chat { background: #f0fdf4; }
+
+  .item-body { flex: 1; min-width: 0; }
+  .item-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-meta { font-size: 0.75rem; color: #9ca3af; margin-top: 3px; }
+  .item-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pill {
+    background: #eff6ff;
+    color: #1a56db;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+  .pill.chat { background: #f0fdf4; color: #15803d; }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+  }
+  .empty .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty p { font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <span class="logo">med-EZ</span>
+  <div class="topnav-links">
+    <a href="ui1.html">Dashboard</a>
+    <a href="ui2.html">Prescriptions</a>
+    <a href="u3.html">AI Chatbot</a>
+    <a href="history.html" class="active">History</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-title">📋 History</div>
+  <div class="page-sub">Your past prescription scans and AI chat sessions.</div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">Total Entries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-prescriptions">0</div>
+      <div class="stat-label">Prescription Scans</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-chats">0</div>
+      <div class="stat-label">AI Chat Sessions</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterHistory('all', this)">All</button>
+    <button class="filter-btn" onclick="filterHistory('prescription', this)">Prescriptions</button>
+    <button class="filter-btn" onclick="filterHistory('chat', this)">Chats</button>
+    <button class="clear-btn" onclick="confirmClear()">🗑 Clear All</button>
+  </div>
+
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<script src="historyManager.js"></script>
+<script>
+  let currentFilter = 'all';
+
+  function renderStats() {
+    const stats = getStats();
+    document.getElementById('stat-total').textContent = stats.total;
+    document.getElementById('stat-prescriptions').textContent = stats.prescriptions;
+    document.getElementById('stat-chats').textContent = stats.chats;
+  }
+
+  function renderHistory(type = 'all') {
+    const list = document.getElementById('history-list');
+    const entries = getHistory({ type, limit: 100 });
+
+    if (!entries.length) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🗂️</div>
+          <p>No history yet. Upload a prescription or start a chat!</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = entries.map(e => {
+      const time = new Date(e.timestamp).toLocaleString('en-IN');
+      if (e.type === 'prescription') {
+        const pills = (e.medicines || []).map(m =>
+          `<span class="pill">${m}</span>`).join('');
+        return `
+          <div class="history-item">
+            <div class="item-icon icon-prescription">💊</div>
+            <div class="item-body">
+              <div class="item-title">${e.title}</div>
+              <div class="item-meta">${time} ${e.doctorName ? '· Dr. ' + e.doctorName : ''} ${e.confidence ? '· ' + e.confidence + ' confidence' : ''}</div>
+              ${pills ? `<div class="item-pills">${pills}</div>` : ''}
+            </div>
+          </div>`;
+      }
+      if (e.type === 'chat') {
+        return `
+          <div class="history-item">
+            <div class="item-icon icon-chat">🤖</div>
+            <div class="item-body">
+              <div class="item-title">${e.title}</div>
+              <div class="item-meta">${time}</div>
+              <div class="item-pills"><span class="pill chat">AI Chat</span></div>
+            </div>
+          </div>`;
+      }
+    }).join('');
+  }
+
+  function filterHistory(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHistory(type);
+  }
+
+  function confirmClear() {
+    if (confirm('Clear all history? This cannot be undone.')) {
+      clearHistory();
+      renderStats();
+      renderHistory(currentFilter);
+    }
+  }
+
+  renderStats();
+  renderHistory();
+</script>
+</body>
+</html>

@@ -379,12 +379,12 @@
 
   <!-- Top Nav -->
   <div class="topnav">
-    <div class="topnav-links">
-      <a href="#">Dashboard</a>
-      <a href="#">Prescriptions</a>
-      <a href="#" class="active">AI Chatbot</a>
-      <a href="#">Records</a>
-    </div>
+<div class="topnav-links">
+  <a href="ui1.html">Dashboard</a>
+  <a href="ui2.html">Prescriptions</a>
+  <a href="u3.html" class="active">AI Chatbot</a>
+  <a href="history.html">History</a>
+</div>
     <div class="topnav-right">
       <button class="emergency-btn">✱ Emergency</button>
       <div class="bell-icon">
@@ -449,6 +449,7 @@
   </div>
 
 </div>
+<script src="historyManager.js"></script>
 <script>
   const chatBody = document.querySelector('.chat-body');
   const input = document.querySelector('.chat-input');
@@ -477,6 +478,9 @@
     const data = await res.json();
     addMessage(data.reply, false);
     history.push({ role: 'assistant', content: data.reply });
+
+    // ✅ Save to history
+    addChatEntry({ message: text, reply: data.reply });
   }
 
   document.querySelector('.send-btn').addEventListener('click', sendMessage);

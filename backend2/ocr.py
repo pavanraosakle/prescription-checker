@@ -1,14 +1,9 @@
-"""
-ocr.py — Prescription image extraction using Claude Vision API
-"""
-
-import anthropic
 import base64
 import json
 import os
-from typing import Any
+from groq import Groq
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GROQ_API_KEY = "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"
 
 SYSTEM_PROMPT = """You are a medical prescription parser with expertise in Indian prescriptions.
 Extract structured data from prescription images accurately.
@@ -18,125 +13,47 @@ make your best guess at the generic/active ingredient and set confidence to medi
 """
 
 USER_PROMPT = """Extract all medicines from this prescription image and return a JSON object.
-
 For each medicine extract:
-- brand_name: the name written on the prescription (as-is)
-- generic_name: the active ingredient if identifiable, else null
-- dose: dosage amount (e.g. "500mg", "10ml"), null if not found
-- frequency: how often (e.g. "twice daily", "OD", "BD", "TDS"), null if not found
-- duration: how long (e.g. "5 days", "1 month"), null if not found
-- route: how taken (e.g. "oral", "topical", "injection"), null if not found
-- instructions: special notes (e.g. "after food", "at bedtime"), null if not found
+- brand_name, generic_name, dose, frequency, duration, route, instructions
 
 Also extract:
-- raw_text: the full readable text visible in the image as a single string
-- doctor_name: the prescribing doctor's name if visible, else null
-- date: prescription date if visible, else null
-- confidence: "high" if clearly readable, "medium" if partially unclear, "low" if mostly unreadable
+- raw_text, doctor_name, date
+- confidence: "high", "medium", or "low"
 
 Return ONLY this JSON structure:
 {
-  "medicines": [
-    {
-      "brand_name": "...",
-      "generic_name": "...",
-      "dose": "...",
-      "frequency": "...",
-      "duration": "...",
-      "route": "...",
-      "instructions": "..."
-    }
-  ],
-  "raw_text": "...",
-  "doctor_name": "...",
-  "date": "...",
-  "confidence": "high|medium|low"
+  "medicines": [{"brand_name": "...","generic_name": "...","dose": "...","frequency": "...","duration": "...","route": "...","instructions": "..."}],
+  "raw_text": "...","doctor_name": "...","date": "...","confidence": "high|medium|low"
 }
-
-If the image is not a prescription or is completely unreadable, return:
-{ "error": "brief reason why it cannot be parsed" }
+If not a prescription return: { "error": "reason" }
 """
 
-
-def _get_media_type(content_type: str) -> str:
-    """Map content type to Anthropic-accepted media type."""
-    mapping = {
-        "image/jpeg": "image/jpeg",
-        "image/png": "image/png",
-        "image/webp": "image/webp",
-        "image/gif": "image/gif",
-    }
-    return mapping.get(content_type, "image/jpeg")
-
-
-async def extract_prescription(image_bytes: bytes, content_type: str) -> dict[str, Any]:
-    """
-    Send prescription image to Claude Vision and return structured extracted data.
-
-    Args:
-        image_bytes: raw image bytes
-        content_type: MIME type of the image
-
-    Returns:
-        dict with medicines list and metadata, or {"error": "reason"} on failure
-    """
-    if not ANTHROPIC_API_KEY:
-        raise ValueError("ANTHROPIC_API_KEY environment variable not set.")
-
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-    # Handle PDF — convert first page to image (requires pdf2image in production)
+async def extract_prescription(image_bytes: bytes, content_type: str) -> dict:
     if content_type == "application/pdf":
-        # For hackathon: ask user to upload image instead
-        # Production: use pdf2image to convert page 1
-        return {"error": "PDF support coming soon. Please upload a JPG or PNG photo of the prescription."}
+        return {"error": "PDF not supported. Please upload JPG or PNG."}
 
+    client = Groq(api_key=GROQ_API_KEY)
     image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
-    media_type = _get_media_type(content_type)
 
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=1500,
-        system=SYSTEM_PROMPT,
+    response = client.chat.completions.create(
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": image_b64,
-                        },
-                    },
-                    {
-                        "type": "text",
-                        "text": USER_PROMPT
-                    }
-                ],
-            }
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": f"data:{content_type};base64,{image_b64}"}},
+                {"type": "text", "text": USER_PROMPT}
+            ]}
         ],
+        max_tokens=1500,
     )
 
-    raw_response = message.content[0].text.strip()
-
-    # Strip accidental markdown fences
-    if raw_response.startswith("```"):
-        raw_response = raw_response.split("```")[1]
-        if raw_response.startswith("json"):
-            raw_response = raw_response[4:]
-        raw_response = raw_response.strip()
+    raw = response.choices[0].message.content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
     try:
-        result = json.loads(raw_response)
+        return json.loads(raw)
     except json.JSONDecodeError:
-        # Try to extract JSON from the response
         import re
-        json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
-        if json_match:
-            result = json.loads(json_match.group())
-        else:
-            return {"error": "Could not parse prescription. Please try a clearer image."}
-
-    return result
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        return {"error": "Could not parse prescription. Please try a clearer image."}
